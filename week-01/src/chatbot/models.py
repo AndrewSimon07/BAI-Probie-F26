@@ -34,5 +34,10 @@ from typing import Literal
 # We use Literal to restrict role to exactly: "user", "assistant", or "system"
 #
 class ChatMessage(BaseModel):
-    change_this_variables: str
+    """A single message in the conversation (immutable once created)."""
+
+    model_config = {"frozen": True}
+
+    role: Literal["user", "assistant", "system"]
+    content: str
 

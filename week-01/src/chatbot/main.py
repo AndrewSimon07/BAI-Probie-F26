@@ -17,6 +17,7 @@ Functional Programming Approach:
 
 from typing import List
 
+from src.settings import settings
 from src.chatbot.models import ChatMessage
 from src.chatbot.api import create_client, get_chat_response, create_system_message
 from src.chatbot import ui
@@ -54,8 +55,8 @@ def run_conversation_loop() -> None:
     """
     
     # TODO: Create OpenAI client
-    
-    
+    client = create_client()
+
     # TODO: Initialize conversation history
     # Instructions:
     # 1. Create a system message using create_system_message() (no parameters needed!)
@@ -63,8 +64,9 @@ def run_conversation_loop() -> None:
     # 3. This list will grow as the conversation progresses
     #
     # Hint: conversation_history should be a List[ChatMessage] type
-    
-    
+    system_message = create_system_message()
+    conversation_history: List[ChatMessage] = [system_message]
+
     ui.display_welcome()
     
     # TODO: Main conversation loop
@@ -84,14 +86,25 @@ def run_conversation_loop() -> None:
                 continue
             
             # TODO: Create and store user message
-            # Code here
-            
-            ui.display_loading()
-            
-            # TODO: Get AI response from OpenAI and display it
-            # Code here
+            user_message = ChatMessage(role="user", content=user_input)
+            conversation_history = conversation_history + [user_message]
 
-            ui.display_assistant_message("NOT IMPLEMENTED YET")
+            ui.display_loading()
+
+            # TODO: Get AI response from OpenAI and display it
+            try:
+                assistant_message = get_chat_response(
+                    client=client,
+                    messages=conversation_history,
+                    model=settings.OPENAI_MODEL,
+                )
+            except Exception:
+                # Remove the unanswered user message so it isn't sent twice
+                conversation_history = conversation_history[:-1]
+                raise
+
+            conversation_history = conversation_history + [assistant_message]
+            ui.display_assistant_message(assistant_message.content)
             
         except KeyboardInterrupt:
             ui.display_goodbye()
